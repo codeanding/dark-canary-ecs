@@ -14,7 +14,7 @@ terraform -chdir="$ROOT/infra" apply
 # leaves the production rule on blue, so prod answers 503. One real deployment normalizes it.
 aws ecs wait services-stable --cluster "$(tf_out cluster_name)" --services "$(tf_out service_name)"
 "$ROOT/scripts/deploy.sh" v1
-"$ROOT/scripts/wait-deploy.sh"
+AUTO_CONTINUE=1 "$ROOT/scripts/wait-deploy.sh"
 
 echo
 echo "prod: $(tf_out prod_url)/version"

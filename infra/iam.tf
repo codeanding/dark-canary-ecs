@@ -79,3 +79,31 @@ resource "aws_iam_role_policy_attachment" "hook_lambda_logs" {
   role       = aws_iam_role.hook_lambda.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
+
+resource "aws_iam_role_policy_attachment" "hook_lambda_vpc" {
+  role       = aws_iam_role.hook_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
+# Hooks look up the green revision's tasks and image tag.
+data "aws_iam_policy_document" "hook_lambda_ecs" {
+  statement {
+    actions   = ["ecs:ListTasks", "ecs:DescribeTasks"]
+    resources = ["*"]
+    condition {
+      test     = "ArnEquals"
+      variable = "ecs:cluster"
+      values   = [aws_ecs_cluster.this.arn]
+    }
+  }
+  statement {
+    actions   = ["ecs:DescribeTaskDefinition"]
+    resources = ["*"] # DescribeTaskDefinition does not support resource-level permissions
+  }
+}
+
+resource "aws_iam_role_policy" "hook_lambda_ecs" {
+  name   = "read-green-revision"
+  role   = aws_iam_role.hook_lambda.id
+  policy = data.aws_iam_policy_document.hook_lambda_ecs.json
+}

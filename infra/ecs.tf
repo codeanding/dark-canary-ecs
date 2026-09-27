@@ -72,6 +72,20 @@ resource "aws_ecs_service" "app" {
         hook_target_arn  = aws_lambda_function.hook[lifecycle_hook.key].arn
         role_arn         = aws_iam_role.ecs_hooks.arn
         lifecycle_stages = lifecycle_hook.value.stages
+        hook_details     = lifecycle_hook.value.details
+      }
+    }
+
+    # Holds the deployment with green validated and prod still on blue.
+    dynamic "lifecycle_hook" {
+      for_each = var.pause_before_production ? [1] : []
+      content {
+        target_type      = "PAUSE"
+        lifecycle_stages = ["POST_TEST_TRAFFIC_SHIFT"]
+        timeout_configuration {
+          timeout_in_minutes = 60
+          action             = "ROLLBACK"
+        }
       }
     }
   }

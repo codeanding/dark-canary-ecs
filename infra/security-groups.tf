@@ -56,3 +56,24 @@ resource "aws_vpc_security_group_egress_rule" "tasks_all" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
+
+resource "aws_security_group" "hook_lambda" {
+  name        = "${var.project_name}-hook-lambda"
+  description = "Lifecycle hook Lambdas"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_vpc_security_group_egress_rule" "hook_lambda_all" {
+  security_group_id = aws_security_group.hook_lambda.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
+# Smoke hook → green task, before any listener sends it traffic.
+resource "aws_vpc_security_group_ingress_rule" "tasks_from_hooks" {
+  security_group_id            = aws_security_group.tasks.id
+  referenced_security_group_id = aws_security_group.hook_lambda.id
+  ip_protocol                  = "tcp"
+  from_port                    = var.app_port
+  to_port                      = var.app_port
+}

@@ -21,8 +21,14 @@ NEW_DEF="$(aws ecs describe-task-definition --task-definition "$CURRENT" --query
 NEW_ARN="$(aws ecs register-task-definition --cli-input-json "$NEW_DEF" \
   --query 'taskDefinition.taskDefinitionArn' --output text)"
 
+ecs_node() { CLUSTER="$CLUSTER" SERVICE="$SERVICE" node "$ROOT/scripts/ecs.mjs" "$@"; }
+PREVIOUS="$(ecs_node arn 2>/dev/null || true)"
+
 aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$NEW_ARN" \
   --query 'service.deployments[0].{id:id,status:status,taskDefinition:taskDefinition}' --output table
+
+# ECS lists the new service deployment a few seconds later; wait so status/wait scripts see it.
+until [[ "$(ecs_node arn)" != "$PREVIOUS" ]]; do sleep 2; done
 
 echo "Deploying $TAG → $NEW_ARN"
 echo "Watch it with: scripts/status.sh"

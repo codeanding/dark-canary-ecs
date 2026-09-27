@@ -15,6 +15,8 @@ await Promise.all(
       platform: "node",
       target: "node22",
       format: "esm",
+      // The bundled AWS SDK still calls require() for Node built-ins.
+      banner: { js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);" },
     }),
   ),
 );

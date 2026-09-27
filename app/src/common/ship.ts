@@ -40,8 +40,12 @@ function page(ship: Ship, bounties: Bounty[] | null, error: string | null) {
 </main></body></html>`;
 }
 
+// Must outlive the ALB idle timeout (60 s). With Node's default 5 s, the ALB reuses
+// connections Node is closing and those requests hang until the client gives up.
+const KEEP_ALIVE_MS = 65_000;
+
 export function sail(ship: Ship) {
-  createServer(async (req, res) => {
+  const server = createServer(async (req, res) => {
     switch (req.url) {
       case "/health":
         return json(res, 200, { status: "ok" });
@@ -65,5 +69,8 @@ export function sail(ship: Ship) {
       default:
         return json(res, 404, { error: "not found" });
     }
-  }).listen(PORT, () => console.log(`${ship.name} (${VERSION}) listening on :${PORT}`));
+  });
+  server.keepAliveTimeout = KEEP_ALIVE_MS;
+  server.headersTimeout = KEEP_ALIVE_MS + 1_000;
+  server.listen(PORT, () => console.log(`${ship.name} (${VERSION}) listening on :${PORT}`));
 }

@@ -39,3 +39,9 @@ variable "app_port" {
   type    = number
   default = 3000
 }
+
+variable "pause_before_production" {
+  description = "Adds a PAUSE hook at POST_TEST_TRAFFIC_SHIFT; continue it with scripts/continue.sh."
+  type        = bool
+  default     = true
+}

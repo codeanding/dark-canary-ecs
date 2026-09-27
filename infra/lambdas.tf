@@ -1,8 +1,19 @@
 locals {
-  # Checkpoint 1: one hook that logs the event and always succeeds.
+  test_url = var.test_routing == "port" ? "http://${aws_lb.this.dns_name}:8080" : "http://${aws_lb.this.dns_name}"
+
   hooks = {
     post-scale-up-smoke = {
-      stages = ["POST_SCALE_UP"]
+      stages  = ["POST_SCALE_UP"]
+      details = null
+    }
+    test-traffic-validation = {
+      stages = ["TEST_TRAFFIC_SHIFT"]
+      details = jsonencode({
+        testUrl          = local.test_url
+        testHeader       = var.test_routing == "header" ? "x-dark-canary:1" : null
+        rounds           = 4
+        requestsPerRound = 10
+      })
     }
   }
 }
@@ -34,5 +45,15 @@ resource "aws_lambda_function" "hook" {
   source_code_hash = data.archive_file.hook[each.key].output_base64sha256
   timeout          = 60
 
-  depends_on = [aws_cloudwatch_log_group.hook]
+  # In the VPC: the smoke hook calls green task IPs directly; the validation hook
+  # reaches the test listener through the NAT EIP allowed on :8080.
+  vpc_config {
+    subnet_ids         = module.vpc.private_subnets
+    security_group_ids = [aws_security_group.hook_lambda.id]
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.hook,
+    aws_iam_role_policy_attachment.hook_lambda_vpc,
+  ]
 }
