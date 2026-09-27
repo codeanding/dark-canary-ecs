@@ -1,0 +1,15 @@
+# Terraform
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
+infra/.terraform.tfstate.lock.info
+
+# Node
+node_modules/
+dist/
+*.zip
+
+.DS_Store
+infra/*.tfplan
+infra/.build/

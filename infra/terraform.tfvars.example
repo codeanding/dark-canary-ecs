@@ -1,0 +1,3 @@
+# cp terraform.tfvars.example terraform.tfvars
+# Your public IP: curl -s https://checkip.amazonaws.com
+presenter_cidr = "203.0.113.10/32"
