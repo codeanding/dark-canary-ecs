@@ -62,6 +62,12 @@ resource "aws_ecs_service" "app" {
     }
   }
 
+  # Without it, a green revision that never starts (e.g. a missing image) retries forever in SCALE_UP.
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
   deployment_configuration {
     strategy             = "BLUE_GREEN"
     bake_time_in_minutes = 1

@@ -7,7 +7,8 @@ source "$(dirname "$0")/env.sh"
 
 terraform -chdir="$ROOT/infra" init -upgrade
 terraform -chdir="$ROOT/infra" apply -target=aws_ecr_repository.app
-"$ROOT/scripts/build-push.sh" v1
+# All three releases up front: deploy.sh only registers task definitions, it never builds.
+for tag in v1 v2-broken v2-fixed; do "$ROOT/scripts/build-push.sh" "$tag"; done
 terraform -chdir="$ROOT/infra" apply
 
 # On service creation ECS registers the first task in the alternate (green) target group but
