@@ -16,26 +16,57 @@ function json(res: ServerResponse, status: number, body: unknown) {
   res.end(JSON.stringify(body));
 }
 
+function poster(b: Bounty) {
+  return `<article class="poster">
+    <div class="wanted">WANTED</div>
+    <div class="portrait">${b.emoji}</div>
+    <div class="doa">DEAD OR ALIVE</div>
+    <div class="name">${b.name}</div>
+    <div class="epithet">“${b.epithet}”</div>
+    <div class="bounty">฿ ${b.berries.toLocaleString("en-US")}-</div>
+    <div class="marine">MARINE</div>
+  </article>`;
+}
+
 function page(ship: Ship, bounties: Bounty[] | null, error: string | null) {
-  const rows = (bounties ?? [])
-    .map((b) => `<li><strong>${b.name}</strong> “${b.epithet}” — ฿${b.berries.toLocaleString("en-US")}</li>`)
-    .join("");
+  const body = error
+    ? `<div class="error">🐌 ${error}</div>`
+    : `<section class="board">${(bounties ?? []).map(poster).join("")}</section>`;
   return `<!doctype html>
-<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="2">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="2">
 <title>${ship.name} · ${VERSION}</title>
 <style>
-  body { margin: 0; font: 20px/1.4 system-ui, sans-serif; background: ${ship.color}; color: #fff; }
-  main { max-width: 760px; margin: 0 auto; padding: 32px 16px; }
-  h1 { font-size: 56px; margin: 0; } .version { font-size: 28px; opacity: .85; }
-  ul { background: rgba(0,0,0,.2); border-radius: 12px; padding: 16px 16px 16px 40px; }
-  .error { background: #b00020; border-radius: 12px; padding: 16px; font-size: 28px; }
-  .at { opacity: .7; font-size: 16px; }
+  :root { --paper: #f1dfb8; --paper-edge: #d9c08e; --ink: #3a2410; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 18px/1.4 system-ui, sans-serif; background: ${ship.color}; color: #fff; }
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 16px 20px; }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 52px; margin: 0; }
+  .version { font: 600 22px/1 ui-monospace, monospace; background: rgba(0,0,0,.25);
+             padding: 8px 14px; border-radius: 999px; }
+  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+           gap: 18px; margin-top: 24px; }
+  .poster { background: var(--paper); color: var(--ink); text-align: center; padding: 12px 12px 10px;
+            border: 3px solid var(--paper-edge); border-radius: 4px;
+            box-shadow: 0 6px 14px rgba(0,0,0,.35), inset 0 0 28px rgba(120,80,30,.35);
+            font-family: Georgia, "Times New Roman", serif; }
+  .poster:nth-child(odd) { transform: rotate(-1.2deg); }
+  .poster:nth-child(even) { transform: rotate(1deg); }
+  .wanted { font-size: clamp(26px, 2.6vw, 34px); font-weight: 900; letter-spacing: 1px; line-height: 1; }
+  .portrait { margin: 8px auto 6px; aspect-ratio: 4 / 3; display: grid; place-items: center; font-size: 64px;
+              background: #e4cfa2; border: 2px solid var(--ink); }
+  .doa { font-size: 12px; font-weight: 700; letter-spacing: 2px; }
+  .name { font-size: 19px; font-weight: 900; text-transform: uppercase; margin-top: 4px; line-height: 1.15; }
+  .epithet { font-size: 14px; font-style: italic; opacity: .8; }
+  .bounty { font-size: 19px; font-weight: 900; margin-top: 6px; }
+  .marine { font-size: 10px; letter-spacing: 3px; opacity: .6; margin-top: 4px; }
+  .error { margin-top: 28px; background: #b00020; border-radius: 12px; padding: 28px; font-size: 32px; font-weight: 700; }
+  .at { opacity: .75; font: 15px ui-monospace, monospace; margin-top: 18px; }
 </style></head>
 <body><main>
-  <h1>🏴‍☠️ ${ship.name}</h1>
-  <div class="version">${VERSION}</div>
-  <h2>Wanted</h2>
-  ${error ? `<div class="error">🐌 ${error}</div>` : `<ul>${rows}</ul>`}
+  <header><h1>🏴‍☠️ ${ship.name}</h1><span class="version">${VERSION}</span></header>
+  ${body}
   <p class="at">${new Date().toISOString()}</p>
 </main></body></html>`;
 }
