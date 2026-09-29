@@ -14,6 +14,7 @@ ARG APP_VERSION
 WORKDIR /app
 ENV APP_VERSION=${APP_VERSION} NODE_ENV=production
 COPY --from=build /app/dist ./dist
+COPY public ./public
 USER node
 EXPOSE 3000
 CMD ["node", "dist/release/index.js"]
