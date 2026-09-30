@@ -46,7 +46,7 @@ resource "aws_lambda_function" "hook" {
   timeout          = 60
 
   # In the VPC: the smoke hook calls green task IPs directly; the validation hook
-  # reaches the test listener through the NAT EIP allowed on :8080.
+  # reaches the test rule through the NAT EIP (allowed by the rule's source-IP condition).
   vpc_config {
     subnet_ids         = module.vpc.private_subnets
     security_group_ids = [aws_security_group.hook_lambda.id]

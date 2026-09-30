@@ -14,14 +14,14 @@ variable "project_name" {
 }
 
 variable "presenter_cidr" {
-  description = "CIDR allowed to reach the test listener (your public IP /32)."
+  description = "Your public IP /32. Only this IP and the NAT EIP (hook Lambdas) can reach green, in either routing mode."
   type        = string
 }
 
 variable "test_routing" {
-  description = "How test traffic reaches green: \"port\" (separate :8080 listener) or \"header\" (x-dark-canary: 1 on :80)."
+  description = "How test traffic reaches green: \"header\" (x-dark-canary: 1 on :80, default) or \"port\" (separate :8080 listener)."
   type        = string
-  default     = "port"
+  default     = "header"
 
   validation {
     condition     = contains(["port", "header"], var.test_routing)

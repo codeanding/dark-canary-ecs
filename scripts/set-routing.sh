@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: scripts/set-routing.sh port|header
+# Usage: scripts/set-routing.sh header|port   (header is the default)
 # Switches how test traffic reaches green, then redeploys the current version so the new
 # test rule points at the target group ECS is actually using (a fresh rule starts on blue).
 set -euo pipefail
