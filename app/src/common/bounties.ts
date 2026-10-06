@@ -6,7 +6,6 @@ export interface Bounty {
   image: string; // file under public/crew/ (see CREDITS.md)
 }
 
-// Straw Hat crew wanted posters (demo data).
 export const STRAW_HATS: Bounty[] = [
   { name: "Monkey D. Luffy", epithet: "Straw Hat", berries: 3_000_000_000, emoji: "👒", image: "monkey-d-luffy.png" },
   { name: "Roronoa Zoro", epithet: "Pirate Hunter", berries: 1_111_000_000, emoji: "⚔️", image: "roronoa-zoro.png" },

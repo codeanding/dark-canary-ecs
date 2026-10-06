@@ -119,4 +119,12 @@ export function sail(ship: Ship) {
   server.keepAliveTimeout = KEEP_ALIVE_MS;
   server.headersTimeout = KEEP_ALIVE_MS + 1_000;
   server.listen(PORT, () => console.log(`${ship.name} (${VERSION}) listening on :${PORT}`));
+
+  // As PID 1, Node ignores SIGTERM unless handled, and ECS would wait 30 s before SIGKILL.
+  process.on("SIGTERM", () => {
+    console.log("SIGTERM: closing server");
+    server.close(() => process.exit(0));
+    server.closeIdleConnections();
+    setTimeout(() => process.exit(0), 10_000).unref();
+  });
 }
