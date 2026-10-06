@@ -42,6 +42,7 @@ resource "aws_ecs_service" "app" {
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = 1
   launch_type     = "FARGATE"
+  propagate_tags  = "SERVICE"
 
   network_configuration {
     subnets          = module.vpc.private_subnets
@@ -62,7 +63,7 @@ resource "aws_ecs_service" "app" {
     }
   }
 
-  # Without it, a green revision that never starts (e.g. a missing image) retries forever in SCALE_UP.
+  # Without it, a revision that never starts retries forever. Threshold: scripts/ecs.mjs.
   deployment_circuit_breaker {
     enable   = true
     rollback = true
