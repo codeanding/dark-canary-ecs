@@ -1,8 +1,10 @@
+# HTTP only for the demo. In production, add :443 with an ACM certificate and redirect :80.
 resource "aws_lb" "this" {
-  name               = var.project_name
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = module.vpc.public_subnets
+  name                       = var.project_name
+  load_balancer_type         = "application"
+  drop_invalid_header_fields = true
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = module.vpc.public_subnets
 
   access_logs {
     bucket  = aws_s3_bucket.alb_logs.id
@@ -32,6 +34,7 @@ resource "aws_lb_target_group" "app" {
   }
 }
 
+# Initial weights only: ECS rewrites them on every deployment, so the rules ignore their action.
 locals {
   forward_to_blue = {
     blue  = 100
@@ -39,7 +42,7 @@ locals {
   }
 }
 
-# --- Production -------------------------------------------------------------
+# --- Production traffic: what every user hits -------------------------------
 
 resource "aws_lb_listener" "prod" {
   load_balancer_arn = aws_lb.this.arn
@@ -79,13 +82,17 @@ resource "aws_lb_listener_rule" "prod" {
     }
   }
 
-  # ECS rewrites the forward weights during every deployment.
   lifecycle {
     ignore_changes = [action]
   }
 }
 
-# --- Test (dark canary) -----------------------------------------------------
+# --- Test traffic (dark canary): only reaches green --------------------------
+
+locals {
+  test_header_name  = "x-dark-canary"
+  test_header_value = "1"
+}
 
 resource "aws_lb_listener" "test" {
   count = var.test_routing == "port" ? 1 : 0
@@ -121,14 +128,13 @@ resource "aws_lb_listener_rule" "test" {
     for_each = var.test_routing == "header" ? [1] : []
     content {
       http_header {
-        http_header_name = "x-dark-canary"
-        values           = ["1"]
+        http_header_name = local.test_header_name
+        values           = [local.test_header_value]
       }
     }
   }
 
-  # The header alone is not a secret: also require the source IP to be the presenter or
-  # the NAT EIP (hook Lambdas). Everyone else keeps hitting the production rule.
+  # The header is not a secret: only the presenter and the NAT EIP (hook Lambdas) can use it.
   dynamic "condition" {
     for_each = var.test_routing == "header" ? [1] : []
     content {

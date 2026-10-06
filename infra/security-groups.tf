@@ -1,6 +1,6 @@
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-alb"
-  description = "ALB: production open, test listener restricted"
+  description = "ALB: port 80 open; test traffic restricted by source IP"
   vpc_id      = module.vpc.vpc_id
 }
 
@@ -31,6 +31,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_test" {
 
 resource "aws_vpc_security_group_egress_rule" "alb_to_tasks" {
   security_group_id            = aws_security_group.alb.id
+  description                  = "ALB to app tasks"
   referenced_security_group_id = aws_security_group.tasks.id
   ip_protocol                  = "tcp"
   from_port                    = var.app_port
@@ -45,6 +46,7 @@ resource "aws_security_group" "tasks" {
 
 resource "aws_vpc_security_group_ingress_rule" "tasks_from_alb" {
   security_group_id            = aws_security_group.tasks.id
+  description                  = "App port from the ALB"
   referenced_security_group_id = aws_security_group.alb.id
   ip_protocol                  = "tcp"
   from_port                    = var.app_port
@@ -53,6 +55,7 @@ resource "aws_vpc_security_group_ingress_rule" "tasks_from_alb" {
 
 resource "aws_vpc_security_group_egress_rule" "tasks_all" {
   security_group_id = aws_security_group.tasks.id
+  description       = "Tasks to the internet through the NAT (image pulls, logs)"
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
@@ -65,6 +68,7 @@ resource "aws_security_group" "hook_lambda" {
 
 resource "aws_vpc_security_group_egress_rule" "hook_lambda_all" {
   security_group_id = aws_security_group.hook_lambda.id
+  description       = "Hook Lambdas to green tasks, the ALB (via NAT) and the ECS API"
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
@@ -72,6 +76,7 @@ resource "aws_vpc_security_group_egress_rule" "hook_lambda_all" {
 # Smoke hook → green task, before any listener sends it traffic.
 resource "aws_vpc_security_group_ingress_rule" "tasks_from_hooks" {
   security_group_id            = aws_security_group.tasks.id
+  description                  = "App port from the smoke hook Lambda"
   referenced_security_group_id = aws_security_group.hook_lambda.id
   ip_protocol                  = "tcp"
   from_port                    = var.app_port

@@ -4,8 +4,8 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      # Native ECS blue/green (strategy, lifecycle_hook, advanced_configuration) needs >= 6.4.
-      version = "~> 6.4"
+      # Native ECS blue/green needs >= 6.4; the demo is tested with 6.66 (see .terraform.lock.hcl).
+      version = "~> 6.66"
     }
     archive = {
       source  = "hashicorp/archive"

@@ -27,8 +27,12 @@ PREVIOUS="$(ecs_node arn 2>/dev/null || true)"
 aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$NEW_ARN" \
   --query 'service.deployments[0].{id:id,status:status,taskDefinition:taskDefinition}' --output table
 
-# ECS lists the new service deployment a few seconds later; wait so status/wait scripts see it.
-until [[ "$(ecs_node arn)" != "$PREVIOUS" ]]; do sleep 2; done
+# ECS lists the new deployment a few seconds later.
+for _ in $(seq 60); do
+  [[ "$(ecs_node arn)" != "$PREVIOUS" ]] && break
+  sleep 2
+done
+[[ "$(ecs_node arn)" != "$PREVIOUS" ]] || { echo "ECS did not start a new deployment after 2 minutes" >&2; exit 1; }
 
 echo "Deploying $TAG → $NEW_ARN"
 echo "Watch it with: scripts/status.sh"

@@ -4,7 +4,9 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project = var.project_name
+      Project   = var.project_name
+      Purpose   = "aws-community-day-demo"
+      ManagedBy = "terraform"
     }
   }
 }

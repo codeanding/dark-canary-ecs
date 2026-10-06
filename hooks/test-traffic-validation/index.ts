@@ -20,8 +20,7 @@ const ROUND_DELAY_SECONDS = 15;
 const SHIFT_DELAY_SECONDS = 5;
 const MAX_SHIFT_WAITS = 8;
 
-// TEST_TRAFFIC_SHIFT: green gets 100% of test traffic, blue keeps 100% of production.
-// Validation: send test traffic in rounds; any error fails the deployment and ECS rolls back.
+// TEST_TRAFFIC_SHIFT: send test traffic in rounds; any error fails the deployment and ECS rolls back.
 export const handler = async (event: HookEvent<Details>): Promise<HookResponse<Details>> => {
   console.log(JSON.stringify({ msg: "hook invoked", event }));
   const details = event.hookDetails!;

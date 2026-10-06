@@ -1,15 +1,19 @@
 # Terraform
-infra/.terraform/
-infra/*.tfstate
-infra/*.tfstate.*
-infra/terraform.tfvars
-infra/.terraform.tfstate.lock.info
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+crash.log
+.terraform.tfstate.lock.info
+infra/.build/
 
 # Node
 node_modules/
 dist/
 *.zip
 
+# Local
+.env
 .DS_Store
-infra/*.tfplan
-infra/.build/
