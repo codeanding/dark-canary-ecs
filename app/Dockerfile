@@ -1,15 +1,16 @@
-# APP_VERSION picks which release to build (a folder under src/), like checking out a tag.
-# The resulting image contains only that release's code — nothing switches at runtime.
-FROM node:22-alpine AS build
+# APP_VERSION picks the release to build (a folder under src/); nothing switches at runtime.
+FROM node:24-alpine AS build
 ARG APP_VERSION
+RUN test -n "$APP_VERSION" || (echo "build with --build-arg APP_VERSION=v1|v2-broken|v2-fixed" && false)
+RUN corepack enable
 WORKDIR /app
-COPY package*.json tsconfig.json ./
-RUN npm install
+COPY package.json pnpm-lock.yaml tsconfig.json ./
+RUN pnpm install --frozen-lockfile
 COPY src/common ./src/common
 COPY src/${APP_VERSION} ./src/release
-RUN npm run build
+RUN pnpm run build
 
-FROM node:22-alpine
+FROM node:24-alpine
 ARG APP_VERSION
 WORKDIR /app
 ENV APP_VERSION=${APP_VERSION} NODE_ENV=production

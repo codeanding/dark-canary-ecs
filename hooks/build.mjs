@@ -13,7 +13,7 @@ await Promise.all(
       outfile: `dist/${name}/index.mjs`,
       bundle: true,
       platform: "node",
-      target: "node22",
+      target: "node24",
       format: "esm",
       // The bundled AWS SDK still calls require() for Node built-ins.
       banner: { js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);" },

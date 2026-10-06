@@ -3,13 +3,14 @@
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 
-(cd "$ROOT/hooks" && npm install --silent && npm run build)
+(cd "$ROOT/hooks" && pnpm install --frozen-lockfile && pnpm run build)
 
-terraform -chdir="$ROOT/infra" init -upgrade
+terraform -chdir="$ROOT/infra" init
 terraform -chdir="$ROOT/infra" apply -target=aws_ecr_repository.app
-# All three releases up front: deploy.sh only registers task definitions, it never builds.
+# deploy.sh never builds, so push all three releases now.
 for tag in v1 v2-broken v2-fixed; do "$ROOT/scripts/build-push.sh" "$tag"; done
 terraform -chdir="$ROOT/infra" apply
+CLUSTER="$(tf_out cluster_name)" SERVICE="$(tf_out service_name)" node "$ROOT/scripts/ecs.mjs" circuit-breaker
 
 # On service creation ECS registers the first task in the alternate (green) target group but
 # leaves the production rule on blue, so prod answers 503. One real deployment normalizes it.

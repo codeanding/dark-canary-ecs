@@ -4,13 +4,13 @@ locals {
   hooks = {
     post-scale-up-smoke = {
       stages  = ["POST_SCALE_UP"]
-      details = null
+      details = jsonencode({ appPort = var.app_port })
     }
     test-traffic-validation = {
       stages = ["TEST_TRAFFIC_SHIFT"]
       details = jsonencode({
         testUrl          = local.test_url
-        testHeader       = var.test_routing == "header" ? "x-dark-canary:1" : null
+        testHeader       = var.test_routing == "header" ? "${local.test_header_name}:${local.test_header_value}" : null
         rounds           = 4
         requestsPerRound = 10
       })
@@ -38,15 +38,14 @@ resource "aws_lambda_function" "hook" {
 
   function_name    = "${var.project_name}-${each.key}"
   role             = aws_iam_role.hook_lambda.arn
-  runtime          = "nodejs22.x"
+  runtime          = "nodejs24.x"
   architectures    = ["arm64"]
   handler          = "index.handler"
   filename         = data.archive_file.hook[each.key].output_path
   source_code_hash = data.archive_file.hook[each.key].output_base64sha256
   timeout          = 60
 
-  # In the VPC: the smoke hook calls green task IPs directly; the validation hook
-  # reaches the test rule through the NAT EIP (allowed by the rule's source-IP condition).
+  # In the VPC: the smoke hook calls green tasks directly; validation goes out through the NAT.
   vpc_config {
     subnet_ids         = module.vpc.private_subnets
     security_group_ids = [aws_security_group.hook_lambda.id]
