@@ -41,7 +41,13 @@ scripts/continue.sh           # approve: production traffic moves to green
 scripts/destroy.sh            # tear everything down
 ```
 
-To see green in a browser, send the header with an extension such as ModHeader (`x-dark-canary: 1`), or use curl:
+To see green in a browser, send the header with an extension such as ModHeader (`x-dark-canary: 1`), or start the local proxy, which adds the header for you and prints a command to open a separate Chrome window on the real ALB URL:
+
+```bash
+node scripts/test-proxy.mjs
+```
+
+Or use curl:
 
 ```bash
 curl "$(terraform -chdir=infra output -raw prod_url)/version"

@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # Sourced by every script. Override with AWS_PROFILE / AWS_REGION in your shell if needed.
-export AWS_PROFILE="${AWS_PROFILE:-codeanding}"
+export AWS_PROFILE="${AWS_PROFILE:-default}"
 export AWS_REGION="${AWS_REGION:-us-west-2}"
 export AWS_PAGER=""
 export TF_VAR_aws_profile="$AWS_PROFILE" TF_VAR_aws_region="$AWS_REGION"
